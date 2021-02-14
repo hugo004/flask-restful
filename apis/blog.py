@@ -1,47 +1,21 @@
-from flask_restx import Namespace, Resource, fields
-from flask import request
+from flask_restx import Resource
 from model.blog import Blog as BlogModel
+from schema.blog import api, blog_list, blog_detail
 
 blog_model = BlogModel()
-
-api = Namespace('blogs', description='Blogs related operations')
-blog = api.model('BlogList', {
-  '_id': fields.String(required=True, description='The blog identifier'),
-  'title': fields.String(required=True, description='Blog title'),
-  'author': fields.String(required=True, description='The blog author'),
-  'content': fields.String(required=True, description='The blog\'s content'),
-  'likes': fields.Integer(description='Number of like'),
-  'shares': fields.Integer(description='Number of share'),
-  'public': fields.Boolean(description='Is the blog pulish'),
-  'tags': fields.List(fields.String, description="The blog tags"),
-  'category': fields.Integer(description='The blog category'),
-  'date': fields.DateTime(description='The blog creation date')
-})
-
-blog_blog_model = api.model('BlogDetail', {
-  'title': fields.String(required=True, description='Blog title'),
-  'author': fields.String(required=True, description='The blog author'),
-  'content': fields.String(required=True, description='The blog\'s content'),
-  'likes': fields.Integer(description='Number of like'),
-  'shares': fields.Integer(description='Number of share'),
-  'public': fields.Boolean(description='Is the blog pulish'),
-  'tags': fields.List(fields.String, description="The blog tags"),
-  'category': fields.Integer(description='The blog category'),
-  'date': fields.DateTime(description='The blog creation date')
-})
 
 
 @api.route('/')
 class BlogList(Resource):
   @api.doc('list_blogs')
-  @api.marshal_list_with(blog)
+  @api.marshal_list_with(blog_list)
   def get(self):
     '''List all blogs'''
     return  blog_model.blog_list()
 
   @api.doc('create_blog')
-  @api.expect(blog_blog_model)
-  @api.marshal_with(blog, code=201)
+  @api.expect(blog_detail)
+  @api.marshal_with(blog_list, code=201)
   def post(self):
     '''Create a blog'''
     return blog_model.create(api.payload), 201
@@ -53,7 +27,7 @@ class BlogList(Resource):
 @api.response(404, 'Blog not found')
 class Blog(Resource):
   @api.doc('get_blog')
-  @api.marshal_with(blog)
+  @api.marshal_with(blog_list)
   def get(self, id):
     '''Fetch a blog given its identifier'''
     blog = blog_model.get(id)
@@ -62,7 +36,7 @@ class Blog(Resource):
     api.abort(404, 'Blog {} doesn\'t exit'.format(id))
 
   @api.doc('update_blog')
-  @api.expect(blog_blog_model)
+  @api.expect(blog_detail)
   def put(self, id):
     '''Update a blog with id'''
     success = blog_model.update(id, api.payload)
