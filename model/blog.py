@@ -15,11 +15,15 @@ class Blog(object):
     self.date = None
 
 
-  def blog_list(self):
-    records = []
-    for b in DB.find():
-      records.append(b)
-    return records
+  def blog_list(self, query):
+    skip = (query['page'] - 1) * query['pageSize']
+    limit = query['pageSize']
+
+    return {
+      'items': [ record for record in DB.find().skip(skip).limit(limit) ],
+      'page': query['page'],
+      'pageSize': query['pageSize']
+    }
 
   def get(self, id):
     blog = DB.find_one({'_id': ObjectId(id)})
