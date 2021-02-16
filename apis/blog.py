@@ -1,21 +1,24 @@
 from flask_restx import Resource
 from model.blog import Blog as BlogModel
-from schema.blog import api, blog_base, list_response, detail_response, blog_query_params, blog_query
+from schema.blog import BlogSchema
 
 blog_model = BlogModel()
+schema = BlogSchema()
+api = schema.ns
 
 @api.route('')
 class BlogList(Resource):
-  @api.doc(params=blog_query_params)
-  @api.marshal_list_with(list_response)
+  @api.doc(params=schema.query['params'])
+  @api.marshal_list_with(schema.response['list'])
   def get(self):
     '''List all blogs'''
-    args = { key: value for key, value in blog_query.parse_args().items() if value is not None }
+    parser = schema.query['parser']
+    args = { key: value for key, value in parser.parse_args().items() if value is not None }
     return  blog_model.blog_list(args)
 
   @api.doc('create_blog')
-  @api.expect(blog_base)
-  @api.marshal_with(detail_response, code=201)
+  @api.expect(schema.dto)
+  @api.marshal_with(schema.response['detail'], code=201)
   def post(self):
     '''Create a blog'''
     return blog_model.create(api.payload), 201
@@ -27,7 +30,7 @@ class BlogList(Resource):
 @api.response(404, 'Blog not found')
 class Blog(Resource):
   @api.doc('get_blog')
-  @api.marshal_with(detail_response)
+  @api.marshal_with(schema.response['detail'])
   def get(self, id):
     '''Fetch a blog given its identifier'''
     blog = blog_model.get(id)
@@ -36,7 +39,7 @@ class Blog(Resource):
     api.abort(404, 'Blog {} doesn\'t exit'.format(id))
 
   @api.doc('update_blog')
-  @api.expect(detail_response)
+  @api.expect(schema.response['detail'])
   def put(self, id):
     '''Update a blog with id'''
     success = blog_model.update(id, api.payload)
