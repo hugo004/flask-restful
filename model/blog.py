@@ -16,13 +16,32 @@ class Blog(object):
 
 
   def blog_list(self, query):
-    skip = (query['page'] - 1) * query['pageSize']
-    limit = query['pageSize']
+    
+    cursor = None
+    if 'startTime' and 'endTime' in query:
+      print(query.get('startTime').isoformat(),query.get('endTime').isoformat(),)
+      cursor = DB.find({
+        'date': { '$gte': query.get('startTime').isoformat(), '$lte': query.get('endTime').isoformat() }
+      })
+    elif 'startTime' in query:
+      cursor = DB.find({
+        'date': { '$gte': query.get('startTime').isoformat() }
+      })
+    elif 'endTime' in query:
+      cursor = DB.find({
+        'date': { '$lte':  query.get('endTime').isoformat() }
+      })
+    else:
+      cursor = DB.find()
+
+    size = query.get('pageSize', 10)
+    page = query.get('page', 1)
+    skip = (page-1) * size
 
     return {
-      'items': [ record for record in DB.find().skip(skip).limit(limit) ],
-      'page': query['page'],
-      'pageSize': query['pageSize']
+      'items': [ record for record in cursor.skip(skip).limit(size) ],
+      'page': page,
+      'pageSize': size
     }
 
   def get(self, id):
@@ -32,7 +51,7 @@ class Blog(object):
   
   def create(self, payload):
     payload.update({
-      'date': datetime.utcnow().isoformat(),
+      'date': datetime.now().replace(microsecond=0).isoformat(),
       'likes': 0,
       'shares': 0
     })

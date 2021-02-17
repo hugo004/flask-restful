@@ -28,7 +28,8 @@ class BlogSchema(BaseSchema):
       'title': { 'description': 'Blog title', 'type': 'string' },
       'author': { 'description': 'Blog author', 'type': 'string' },
       'category': { 'description': 'Blog category', 'type': 'integer($int32)', 'default': 0 },
-      'date': { 'description': 'Blog created time', 'type': 'string($date-time)' },
+      'startTime': { 'description': 'Blog created time after or equal than start time', 'type': 'string($date-time)' },
+      'endTime': { 'description': 'The blog created time less or equal than end time', 'type': 'string($date-time)' },
       'page': { 'type': 'integer($int32)' },
       'pageSize': { 'type': 'integer($int32)' }
     }
@@ -37,7 +38,8 @@ class BlogSchema(BaseSchema):
     __parser.add_argument('title', type=str)
     __parser.add_argument('author', type=str)
     __parser.add_argument('category', type=int)
-    __parser.add_argument('date', type=inputs.date_from_iso8601)
+    __parser.add_argument('startTime', type=inputs.datetime_from_iso8601)
+    __parser.add_argument('endTime', type=inputs.datetime_from_iso8601)
     __parser.add_argument('page', type=int, default=1)
     __parser.add_argument('pageSize', type=int, default=10)
     
