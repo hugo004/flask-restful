@@ -19,7 +19,6 @@ class Blog(object):
     
     cursor = None
     if 'startTime' and 'endTime' in query:
-      print(query.get('startTime').isoformat(),query.get('endTime').isoformat(),)
       cursor = DB.find({
         'date': { '$gte': query.get('startTime').isoformat(), '$lte': query.get('endTime').isoformat() }
       })
